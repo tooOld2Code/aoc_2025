@@ -1,0 +1,24 @@
+### general excludes
+
+### my personal play/test/etc files
+*.test.py
+
+### VisualStudioCode ###
+*.code-workspace
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+**/.history
+
+# aoc data files, etc.
+d*_dev.py
+d*.txt
+d_tmplt.py
+
+# rek's stuff, backups, etc not to be committed
+rek/*
+*_rek*
