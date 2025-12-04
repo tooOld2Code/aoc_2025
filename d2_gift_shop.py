@@ -1,6 +1,8 @@
 # Day 2: Gift Shop
 # /learn/aoc_2025/d2_gift_shop.py
 
+import re
+
 fl_pzl_input = '../aoc_2025/d2_ids.txt'
 fl_tst_input = '../aoc_2025/d2_tst.txt'
 
@@ -75,5 +77,22 @@ def part_2():
   return rslt
 
 
-print(f"Day X, Part 1: {part_1()}")
-print(f"Day X, Part 2: {part_2()}")
+# part 3
+def part_3():
+  r_ids = []
+  # test finding valid candidates using a regex
+  rpts = r"^(\d+)\1+$"
+  is_rpt = re.compile(rpts)
+  for id_rng in d2_id_rngs:
+    s_st, s_nd = id_rng.split("-")
+    for t_id in range(int(s_st), int(s_nd) + 1):
+      s_id = str(t_id)
+      is_reps = is_rpt.match(s_id)
+      if is_reps:
+        r_ids.append(t_id)
+  return(r_ids)
+
+
+print(f"Day 2, Part 1: {part_1()}")
+print(f"Day 2, Part 2: {part_2()}")
+print(f"Day 2, Part 3: {sum(part_3())}")
