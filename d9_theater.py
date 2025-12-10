@@ -1,16 +1,10 @@
 # Day 9: ???
 # /learn/aoc_2025/d9_theater.py
 import math
-# import numpy as np
-# import pandas as pd
+from collections import defaultdict
 
 fl_pzl_input = '../aoc_2025/d9_tiles.txt'
 fl_tst_input = '../aoc_2025/d9_tst.txt'
-
-# def inp_to_numpy(dD_in):
-#   rdgs = [[int(bd) for bd in rdg.strip()] for rdg in dD_in]
-#   r_np = np.array(rdgs)
-#   return r_np
 
 # Change to False when finished dev and testing to run on puzzle 
 use_test = False
@@ -31,25 +25,50 @@ for i in range(len(d9_vals)):
     distances.append((dist, (d9_vals[i], d9_vals[j])))
 distances.sort(key=lambda x: x[0], reverse=True)
 
-if use_test:
-  print(distances)
+
+def get_area(p1, p2):
+  return (abs(p1[0]-p2[0]) + 1) * (abs(p1[1]-p2[1]) + 1)
+
 
 # part 1
 def part_1():
-  rslt = 0
   mx_area = 0
-  for _, (p1, p2) in distances[:len(distances)//4]:
-    t_area = (abs(p1[0]-p2[0]) + 1) * (abs(p1[1]-p2[1]) + 1)
+  l_cnt = -1
+  # get area for top 1/8 of distances, 1/8 is a guess,
+  # but it did work for my puzzle data
+  for dst, (p1, p2) in distances[:len(distances)//8]:
+    l_cnt += 1
+    t_area = get_area(p1, p2)
     if t_area >= mx_area:
       mx_area = t_area
-    print(f"{(p1, p2)} -> {t_area} -> {mx_area}")
-  
   return mx_area
 
 
 # part 2
 def part_2():
+  # get all edges of valid tile area
+  # for each possible rectangle, see if any edges are in it
   rslt = 0
+  n_r = len(d9_vals)
+
+  edges, areas = [], []
+  for i in range(n_r):
+    edges.append(sorted((d9_vals[i], d9_vals[i-1])))
+    for j in range(i+1, n_r):
+      r1, r2 = sorted((d9_vals[i], d9_vals[j]))
+      areas.append((get_area(r1, r2), r1, r2)) 
+
+  edges.sort(reverse=True, key=lambda e: get_area(e[0], e[1]))
+  areas.sort(reverse=True)
+
+  for sz, (x1, y1), (x2, y2) in areas:
+    y1, y2 = sorted((y1, y2))
+    # if any edge in rectangle, it is not valid
+    if not any((x4 > x1 and x3 < x2 and y4 > y1 and y3 < y2)
+      for (x3, y3), (x4, y4) in edges):
+      rslt = sz
+      break
+ 
   return rslt
 
 
