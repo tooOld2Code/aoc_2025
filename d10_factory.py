@@ -1,6 +1,26 @@
 # Day 10: Factory
 # /learn/aoc_2025/d10_factory.py
 import itertools
+import numpy as np
+from scipy.optimize import Bounds, LinearConstraint, milp
+
+
+def le_solve(jlts, btns):
+  jolts = np.array(jlts)
+  n_b, n_j = len(btns), len(jolts)
+  l_eqs = np.zeros((n_j, n_b))
+  for i in range(n_j):
+    for j in range(n_b):
+      if i in btns[j]:
+        l_eqs[i, j] = 1
+  cost = np.ones(n_b)
+  cnst = LinearConstraint(l_eqs, jolts, jolts)
+  intg = np.ones(n_b)
+  bnds = Bounds(lb=0, ub=np.inf)
+  soln = milp(c=cost, constraints=cnst, integrality=intg, bounds=bnds)
+
+  return np.sum(np.round(soln.x).astype(int))
+
 
 fl_pzl_input = '../aoc_2025/d10_manual.txt'
 fl_tst_input = '../aoc_2025/d10_tst.txt'
@@ -16,12 +36,9 @@ else:
 with open(curr_fl, "r") as f:
   d10_vals = [line.strip() for line in f]
 
-if use_test:
-  print(d10_vals)
-
-num_lts, trgts, btns, b_masks = [], [], [], []
-# convert light and switch info to binary so can
-# use XOR to toggle switch combinations
+# convert light and button info to binary so can
+# use XOR to toggle button combinations for part 1
+num_lts, trgts, btns, b_masks, jolts = [], [], [], [], []
 for ln in d10_vals:
   lgt_nd = ln.find("]")
   btn_nd = ln.find("{")
@@ -32,34 +49,25 @@ for ln in d10_vals:
   for i, char in enumerate(t_t):
     if char == '#': 
       b_trgt |= (1 << i)
-  # if use_test:
-  #   print(bin(b_trgt), end=' ')
-  # if use_test:
-  #   print()
   trgts.append(b_trgt)
-  # if use_test:
-  #   print(t_t, trgts)
   t_btns = ln[lgt_nd+2:btn_nd-1]
   b_list = t_btns.split(" ")
   b_locs = []
-  # print(f"'{b_list}'")
   for btn in b_list:
-    # print(f"'{btn}': '{btn[1:-1].split(",")}'")
     locs = [int(x) for x in btn[1:-1].split(",")]
     mask = 0
     for ndx in locs:
       mask |= (1 << ndx)
     b_locs.append(locs)
-  # print(b_locs)
   btns.append(b_locs)
 
   btn_masks = [sum(1 << i for i in locs) for locs in b_locs]
-  # print(btn_masks)
   b_masks.append(btn_masks)
+  # for part 2 need the power/jolt rqts
+  s_j = ln[btn_nd+1:-1]
+  t_j = [int(j) for j in s_j.split(",")]
+  jolts.append(t_j)
 
-if use_test:
-  print(f"{num_lts}, {trgts}\n{btns}\n{b_masks}")
-  # print(bin(46))
 
 # part 1
 def part_1():
@@ -87,6 +95,9 @@ def part_1():
 # part 2
 def part_2():
   rslt = 0
+  for i, m_jlt in enumerate(jolts):
+    n_prss = le_solve(m_jlt, btns[i], dbg_p=False)
+    rslt += n_prss
   return rslt
 
 
